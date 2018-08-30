@@ -1,4 +1,4 @@
-import os, time, logging
+import os, time, logging, nbslack
 from tempfile import gettempdir
 from selenium.common.exceptions import NoSuchElementException
 from instapy import InstaPy
@@ -9,7 +9,7 @@ from instapy import InstaPy
 # library in the /usr/lib/pythonX.X/ directory:
 #   Settings.database_location = '/path/to/instapy.db'
 #   Settings.chromedriver_location = '/path/to/chromedriver'
-
+error_msg="No error" # message for slack notification
 session = InstaPy(username=os.environ['INSTA_USERNAME'],
                   password=os.environ['INSTA_PASSWORD'],
                   headless_browser=True,
@@ -40,6 +40,7 @@ try:
                                     amount=50, randomize=True)
 
 except Exception as exc:
+    error_msg=f"Error, {exc}"
     # if changes to IG layout, upload the file to help us locate the change
     if isinstance(exc, NoSuchElementException):
         file_path = os.path.join(gettempdir(), '{}.html'.format(time.strftime('%Y%m%d-%H%M%S')))
@@ -51,6 +52,8 @@ except Exception as exc:
     raise
 
 finally:
+    nbslack.notifying('dnishiyama','https://hooks.slack.com/services/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',error_handle=False)
+    nbslack.notify(f"InstaPy bot finished with {error_msg}")    
     # end the bot session
     logging.info("Ending session");
     session.end()
