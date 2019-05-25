@@ -1,4 +1,4 @@
-import os, time, logging, nbslack
+import os, time, logging, nbslack, random
 from tempfile import gettempdir
 from selenium.common.exceptions import NoSuchElementException
 from instapy import InstaPy
@@ -27,17 +27,30 @@ try:
                      min_followers=45,
                       min_following=56)
     
+    ##### Interact with followers of big accounts #####
+    accts_with_followers_to_follow = ['etymologynerd', 'dictionarycom', 'cambridgewords', 'oxforddictionaries', 'etymologyrules']
+    followers_per_acct = 50
+    interactions = 2
 
+    #session.set_user_interact(amount=interactions, randomize=True, percentage=50, media='Photo')
+    #session.set_do_like(enabled=True, percentage=50)
+    #session.set_do_follow(enabled=False)
+    #session.interact_user_followers(['etymologynerd', 'dictionarycom', 'cambridgewords', 'oxforddictionaries', 'etymologyrules'], amount=followers_per_acct, randomize=True)
+
+
+    followers = []
+    for acct in accts_with_followers_to_follow:
+        acct_followers = session.grab_followers(username=acct, amount=followers_per_acct, live_match=False, store_locally=True)
+        followers += random.sample(acct_followers, min(followers_per_acct, len(acct_followers)))
+    logging.info(f'Looking at {len(followers)} followers!'); 
+    session.interact_by_users(followers, amount=interactions, randomize=True, media='Photo')
+
+
+    ##### Interact with users in hashtags #####
     session.set_user_interact(amount=2, randomize=True, percentage=50, media='Photo')
     session.set_dont_like(['watch', 'god', 'God'])    
     session.like_by_tags(['etymology', 'wordgram', 'wordoftheday', 'wordfortheday' ,'funfact' ,'funfacts' ,'vocabulary' ,'learnvocabulary' ,'learnsomethingneweveryday' ,'becomesmartereveryday' ,'dictionarycom' ,'englishvocabulary' ,'etymologyrules' ,'language' ,'definition' ,'words' ,'dictionary' ,'unknownwords' ,'obscurewords' ,'languagelovers' ,'esoteric'], 
                          amount=10, interact=True)
-
-    session.set_user_interact(amount=2, randomize=True, percentage=50, media='Photo')
-    session.set_do_like(enabled=True, percentage=50)
-    session.set_do_follow(enabled=False)
-    session.interact_user_followers(['etymologynerd', 'dictionarycom', 'cambridgewords', 'oxforddictionaries', 'etymologyrules'], 
-                                    amount=50, randomize=True)
 
 except Exception as exc:
     error_msg=f"Error, {exc}"
